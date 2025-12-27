@@ -44,7 +44,9 @@ Route::controller(TeacherController::class)->prefix('teachers')->name('teachers.
 });
 Route::controller(ProductController::class)->prefix('products')->name('products.')->group(function () {
     Route::get('/', 'index')->name('index');
-    Route::post('/store', 'store')->name('store');
+    Route::get('/create', 'create')->name('create');
+    Route::post('/', 'store')->name('store');
+    Route::post('/bulk-delete', 'bulkDelete')->name('bulk-delete');
 });
 
 Route::fallback(function () {
