@@ -6,7 +6,7 @@ import { ChevronLeft, Menu, X } from "lucide-react";
 export default function AuthenticatedLayout({ children }) {
     const [isCollapsed, setIsCollapsed] = useState(false);
     const [isHovered, setIsHovered] = useState(false);
-    const [isMobileOpen, setIsMobileOpen] = useState(false); // মোবাইল মেনুর জন্য
+    const [isMobileOpen, setIsMobileOpen] = useState(false);
 
     const showFullSidebar = !isCollapsed || isHovered;
 
@@ -31,7 +31,7 @@ export default function AuthenticatedLayout({ children }) {
                     }
                     ${showFullSidebar ? "lg:w-64" : "lg:w-20"}`}
             >
-                {/* Desktop Toggle Button (শুধু ডেস্কটপে দেখাবে) */}
+                {/* Desktop Toggle Button */}
                 <button
                     onClick={() => setIsCollapsed(!isCollapsed)}
                     className="hidden lg:flex absolute -right-3 top-5 z-[70] w-6 h-6 bg-orange-500 text-white rounded-full items-center justify-center shadow-md hover:bg-orange-600 transition-all"
@@ -44,7 +44,7 @@ export default function AuthenticatedLayout({ children }) {
                     />
                 </button>
 
-                {/* Mobile Close Button (শুধু মোবাইলে দেখাবে) */}
+                {/* Mobile Close Button */}
                 <button
                     onClick={() => setIsMobileOpen(false)}
                     className="lg:hidden absolute right-4 top-5 p-1 text-gray-500"
@@ -52,7 +52,7 @@ export default function AuthenticatedLayout({ children }) {
                     <X size={20} />
                 </button>
 
-                {/* Logo Area */}
+                {/* Logo Area - এনিমেশন রিমুভ করা হয়েছে */}
                 <div className="h-16 flex items-center px-5 border-b border-gray-100 shrink-0">
                     <div className="flex items-center gap-3">
                         <div className="w-8 h-8 bg-orange-500 rounded flex items-center justify-center shrink-0 shadow-sm">
@@ -60,16 +60,25 @@ export default function AuthenticatedLayout({ children }) {
                                 D
                             </span>
                         </div>
-                        {(showFullSidebar || isMobileOpen) && (
-                            <div className="leading-tight animate-in fade-in duration-300">
-                                <span className="text-xl font-bold text-slate-800 block">
-                                    Dreams
-                                </span>
-                                <span className="text-orange-500 text-[10px] font-bold uppercase tracking-tighter -mt-1 block text-right">
-                                    pos
-                                </span>
-                            </div>
-                        )}
+
+                        {/* এখানে animate-in fade-in রিমুভ করা হয়েছে।
+                            অপাসিটি এবং ট্রানজিশন ব্যবহার করা হয়েছে যাতে ক্লিক করলে ঝিলিক না দেয়।
+                        */}
+                        <div
+                            className={`leading-tight transition-all duration-200
+                            ${
+                                showFullSidebar || isMobileOpen
+                                    ? "opacity-100 translate-x-0 visible"
+                                    : "opacity-0 -translate-x-2 invisible absolute"
+                            }`}
+                        >
+                            <span className="text-xl font-bold text-slate-800 block">
+                                Dreams
+                            </span>
+                            <span className="text-orange-500 text-[10px] font-bold uppercase tracking-tighter -mt-1 block text-right">
+                                pos
+                            </span>
+                        </div>
                     </div>
                 </div>
 
@@ -87,7 +96,6 @@ export default function AuthenticatedLayout({ children }) {
                     isCollapsed ? "lg:pl-20" : "lg:pl-64"
                 } pl-0`}
             >
-                {/* Header Container with Mobile Menu Trigger */}
                 <div className="flex items-center bg-white border-b border-gray-100 lg:border-none w-full shrink-0">
                     <button
                         onClick={() => setIsMobileOpen(true)}
@@ -100,7 +108,6 @@ export default function AuthenticatedLayout({ children }) {
                     </div>
                 </div>
 
-                {/* Main Content */}
                 <main className="flex-1 overflow-y-auto overflow-x-hidden bg-[#F9FAFB]">
                     <div className="w-full mx-auto">{children}</div>
                 </main>

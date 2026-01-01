@@ -2,41 +2,31 @@ import React, { useState, useEffect, useCallback } from "react";
 import AuthenticatedLayout from "@/Layouts/AuthenticatedLayout";
 import { Head, Link, router } from "@inertiajs/react";
 import Dropdown from "@/Components/Dropdown";
-import { Skeleton } from "@/Components/ui/skeleton"; // Skeleton ইমপোর্ট করা হয়েছে
-import {
-    Search,
-    Plus,
-    Trash2,
-    AlertTriangle,
-    Loader2,
-    Eye,
-    ChevronDown,
-    Check,
-} from "lucide-react";
+import { Skeleton } from "@/Components/ui/skeleton";
+import Pagination from "@/Components/Pagination";
+import { Search, Plus, Trash2, Eye, ChevronDown, Check } from "lucide-react";
 import debounce from "lodash/debounce";
 
 export default function Index({ products, filters }) {
-    // --- States ---
     const [search, setSearch] = useState(filters.search || "");
     const [perPage, setPerPage] = useState(filters.per_page || 10);
     const [selectedIds, setSelectedIds] = useState([]);
     const [isAllSelected, setIsAllSelected] = useState(false);
     const [isDeleting, setIsDeleting] = useState(false);
     const [showModal, setShowModal] = useState(false);
-    const [confirmText, setConfirmText] = useState("");
-    const [isLoading, setIsLoading] = useState(false); // লোডিং স্টেট ট্র্যাকিং
+    const [isLoading, setIsLoading] = useState(false);
 
-    // --- Optimized Search Logic ---
     const performSearch = useCallback(
         debounce((query) => {
-            setIsLoading(true); // সার্চ শুরু হলে লোডিং অন
             router.get(
                 route("products.index"),
                 { search: query, per_page: perPage },
                 {
                     preserveState: true,
+                    preserveScroll: true,
                     replace: true,
-                    onFinish: () => setIsLoading(false), // শেষ হলে লোডিং অফ
+                    onStart: () => setIsLoading(true),
+                    onFinish: () => setIsLoading(false),
                 }
             );
         }, 500),
@@ -49,12 +39,13 @@ export default function Index({ products, filters }) {
 
     const handlePerPageChange = (value) => {
         setPerPage(value);
-        setIsLoading(true); // পেজ পরিবর্তন শুরু হলে লোডিং অন
+        setIsLoading(true);
         router.get(
             route("products.index"),
             { search, per_page: value },
             {
                 preserveState: true,
+                preserveScroll: true,
                 onFinish: () => setIsLoading(false),
             }
         );
@@ -68,7 +59,7 @@ export default function Index({ products, filters }) {
             setSelectedIds(products.data.map((p) => p.id));
         }
     };
-
+    const skeletonRows = Array.from({ length: perPage > 10 ? 10 : perPage });
     return (
         <AuthenticatedLayout>
             <Head title="Product Management" />
@@ -92,7 +83,7 @@ export default function Index({ products, filters }) {
                         {selectedIds.length > 0 && (
                             <button
                                 onClick={() => setShowModal(true)}
-                                className="bg-red-500 text-white px-4 py-2 rounded-md font-bold text-[13px] flex items-center gap-2"
+                                className="bg-red-500 text-white px-4 py-2 rounded-md font-bold text-[13px] flex items-center gap-2 transition-all hover:bg-red-600"
                             >
                                 <Trash2 size={16} /> Delete{" "}
                                 {isAllSelected
@@ -102,16 +93,15 @@ export default function Index({ products, filters }) {
                         )}
                         <Link
                             href={route("products.create")}
-                            className="bg-[#FF9F43] text-white px-4 py-2 rounded-md font-bold text-[13px] flex items-center gap-2"
+                            className="bg-[#FF9F43] text-white px-4 py-2 rounded-md font-bold text-[13px] flex items-center gap-2 hover:bg-[#e68a2e] transition-colors"
                         >
                             <Plus size={16} /> Add Product
                         </Link>
                     </div>
                 </div>
 
-                {/* Table Content */}
-                <div className="bg-white rounded-lg border border-gray-100 shadow-sm">
-                    {/* Filters Bar */}
+                <div className="bg-white rounded-lg border border-gray-100 shadow-sm overflow-hidden">
+                    {/* Filter Bar */}
                     <div className="p-4 border-b border-gray-50 flex flex-col md:flex-row justify-between items-center gap-4">
                         <div className="relative w-full md:max-w-[350px]">
                             <Search
@@ -121,42 +111,41 @@ export default function Index({ products, filters }) {
                             <input
                                 type="text"
                                 value={search}
-                                onChange={(e) => setSearch(e.target.value)}
-                                placeholder="Search by name or slug..."
+                                onChange={(e) => {
+                                    setSearch(e.target.value);
+                                    setIsLoading(true);
+                                }}
+                                placeholder="Search products..."
                                 className="w-full pl-10 pr-4 py-2 border border-gray-200 rounded-md text-[14px] focus:border-[#FF9F43] outline-none transition-all"
                             />
                         </div>
-
                         <div className="flex items-center gap-2 text-[13px] font-bold text-gray-500">
                             <span>Show</span>
                             <Dropdown>
                                 <Dropdown.Trigger>
-                                    <button className="flex items-center gap-2 px-3 py-2 border border-gray-200 rounded-md bg-white hover:border-[#FF9F43] transition-all outline-none min-w-[100px] justify-between text-[#212B36]">
-                                        {/* সরাসরি perPage সংখ্যাটি দেখাবে */}
-                                        {`${perPage} Entries`}
+                                    <button className="flex items-center gap-2 px-3 py-2 border border-gray-200 rounded-md bg-white hover:border-[#FF9F43] transition-all min-w-[120px] justify-between text-[#212B36]">
+                                        {perPage} Entries{" "}
                                         <ChevronDown
                                             size={14}
                                             className="text-gray-400"
                                         />
                                     </button>
                                 </Dropdown.Trigger>
-
                                 <Dropdown.Content width="48" align="right">
-                                    {/* 'all' রিমুভ করা হয়েছে */}
-                                    {[10, 25, 50, 100, 500].map((value) => (
+                                    {[10, 25, 50, 100].map((num) => (
                                         <button
-                                            key={value}
+                                            key={num}
                                             onClick={() =>
-                                                handlePerPageChange(value)
+                                                handlePerPageChange(num)
                                             }
-                                            className={`flex items-center justify-between w-full px-4 py-2 text-start text-sm leading-5 hover:bg-gray-100 transition ${
-                                                perPage == value
-                                                    ? "bg-orange-50 text-[#FF9F43] font-bold"
+                                            className={`flex items-center justify-between w-full px-4 py-2 text-sm hover:bg-gray-100 ${
+                                                perPage === num
+                                                    ? "text-[#FF9F43] font-bold bg-orange-50"
                                                     : "text-gray-700"
                                             }`}
                                         >
-                                            <span>{`${value} Entries`}</span>
-                                            {perPage == value && (
+                                            {num} Entries{" "}
+                                            {perPage === num && (
                                                 <Check size={14} />
                                             )}
                                         </button>
@@ -166,50 +155,12 @@ export default function Index({ products, filters }) {
                         </div>
                     </div>
 
-                    {/* Select All Message */}
-                    {selectedIds.length === products.data.length &&
-                        products.total > products.data.length && (
-                            <div
-                                className={`p-2 text-center text-[13px] transition-all ${
-                                    isAllSelected
-                                        ? "bg-red-600 text-white font-bold"
-                                        : "bg-orange-50 text-gray-700 border-b border-orange-100"
-                                }`}
-                            >
-                                {isAllSelected ? (
-                                    `⚠️ All ${products.total} products are selected for deletion!`
-                                ) : (
-                                    <span>
-                                        All items on this page are selected.{" "}
-                                        <button
-                                            onClick={() =>
-                                                setIsAllSelected(true)
-                                            }
-                                            className="text-blue-600 font-bold underline ml-1"
-                                        >
-                                            Select all {products.total} products
-                                            instead
-                                        </button>
-                                    </span>
-                                )}
-                                <button
-                                    onClick={() => {
-                                        setSelectedIds([]);
-                                        setIsAllSelected(false);
-                                    }}
-                                    className="ml-4 underline"
-                                >
-                                    Clear Selection
-                                </button>
-                            </div>
-                        )}
-
-                    {/* Table */}
+                    {/* Table Area */}
                     <div className="overflow-x-auto">
-                        <table className="w-full text-left">
+                        <table className="w-full text-left border-collapse">
                             <thead>
                                 <tr className="bg-[#F9FAFB] text-[#212B36] font-bold text-[14px] border-b border-gray-100">
-                                    <th className="py-4 px-4">
+                                    <th className="py-4 px-4 w-10">
                                         <input
                                             type="checkbox"
                                             checked={
@@ -231,13 +182,10 @@ export default function Index({ products, filters }) {
                             </thead>
                             <tbody className="text-[13px]">
                                 {isLoading ? (
-                                    // Skeleton Rows
-                                    Array.from({
-                                        length:
-                                            perPage === "all" ? 10 : perPage,
-                                    }).map((_, i) => (
+                                    // স্কেলিটন রো রেন্ডার হচ্ছে
+                                    skeletonRows.map((_, index) => (
                                         <tr
-                                            key={i}
+                                            key={index}
                                             className="border-b border-gray-50"
                                         >
                                             <td className="py-4 px-4">
@@ -309,12 +257,13 @@ export default function Index({ products, filters }) {
                                                     <img
                                                         src={product.image}
                                                         className="w-10 h-10 rounded-md object-cover border border-gray-100"
+                                                        alt=""
                                                     />
                                                     <div>
                                                         <div className="font-bold text-[#212B36]">
                                                             {product.name}
                                                         </div>
-                                                        <div className="text-[11px] text-gray-400 font-bold uppercase tracking-tighter">
+                                                        <div className="text-[11px] text-gray-400 font-bold uppercase">
                                                             {product.slug}
                                                         </div>
                                                     </div>
@@ -349,7 +298,7 @@ export default function Index({ products, filters }) {
                                     <tr>
                                         <td
                                             colSpan="5"
-                                            className="py-20 text-center text-gray-400 font-bold"
+                                            className="py-20 text-center text-gray-400 font-bold italic"
                                         >
                                             No products found matching your
                                             search.
@@ -360,125 +309,10 @@ export default function Index({ products, filters }) {
                         </table>
                     </div>
 
-                    {/* Numerical Pagination */}
-                    <div className="p-4 border-t border-gray-50 flex items-center justify-between">
-                        <span className="text-[12px] text-gray-400 font-medium">
-                            Showing {products.from || 0} to {products.to || 0}{" "}
-                            of {products.total} products
-                        </span>
-                        <div className="flex gap-1">
-                            {products.links.map((link, index) => (
-                                <Link
-                                    key={index}
-                                    href={link.url || "#"}
-                                    dangerouslySetInnerHTML={{
-                                        __html: link.label
-                                            .replace("&laquo; Previous", "Prev")
-                                            .replace("Next &raquo;", "Next"),
-                                    }}
-                                    className={`px-3 py-1.5 rounded text-[13px] font-bold border transition ${
-                                        link.active
-                                            ? "bg-[#FF9F43] border-[#FF9F43] text-white"
-                                            : "bg-white border-gray-200 text-gray-600 hover:border-[#FF9F43]"
-                                    } ${
-                                        !link.url
-                                            ? "opacity-40 pointer-events-none"
-                                            : ""
-                                    }`}
-                                />
-                            ))}
-                        </div>
-                    </div>
+                    {/* Pagination */}
+                    <Pagination data={products} />
                 </div>
             </div>
-
-            {/* Modal অংশ ঠিক আগের মতোই রাখা হয়েছে */}
-            {showModal && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-sm">
-                    <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full p-8">
-                        <div className="w-14 h-14 bg-red-50 rounded-full flex items-center justify-center text-red-600 mb-4 mx-auto">
-                            <AlertTriangle size={30} />
-                        </div>
-                        <h3 className="text-xl font-bold text-center mb-2">
-                            Confirm Destruction
-                        </h3>
-                        <p className="text-gray-500 text-sm text-center mb-6 leading-relaxed">
-                            {isAllSelected
-                                ? `This will permanently delete ALL ${products.total} products from the entire database. This action is irreversible.`
-                                : `Are you sure you want to delete ${selectedIds.length} items?`}
-                        </p>
-
-                        {isAllSelected && (
-                            <div className="mb-6 text-center">
-                                <label className="text-[11px] font-bold text-gray-400 uppercase tracking-widest block mb-2">
-                                    Type "DELETE" to confirm
-                                </label>
-                                <input
-                                    type="text"
-                                    value={confirmText}
-                                    onChange={(e) =>
-                                        setConfirmText(e.target.value)
-                                    }
-                                    placeholder="DELETE"
-                                    className="w-full bg-gray-50 border-gray-200 rounded-lg py-3 text-center text-red-600 font-bold focus:ring-red-500 outline-none border"
-                                />
-                            </div>
-                        )}
-
-                        <div className="flex gap-3">
-                            <button
-                                onClick={() => {
-                                    setShowModal(false);
-                                    setConfirmText("");
-                                }}
-                                className="flex-1 py-3 bg-gray-100 rounded-xl font-bold text-sm text-gray-600 hover:bg-gray-200 transition"
-                            >
-                                Cancel
-                            </button>
-                            <button
-                                disabled={
-                                    isDeleting ||
-                                    (isAllSelected && confirmText !== "DELETE")
-                                }
-                                onClick={() => {
-                                    setIsDeleting(true);
-                                    router.post(
-                                        route("products.bulk-delete"),
-                                        {
-                                            ids: selectedIds,
-                                            all: isAllSelected,
-                                        },
-                                        {
-                                            onSuccess: () => {
-                                                setShowModal(false);
-                                                setSelectedIds([]);
-                                                setIsAllSelected(false);
-                                                setIsDeleting(false);
-                                            },
-                                            onFinish: () =>
-                                                setIsDeleting(false),
-                                        }
-                                    );
-                                }}
-                                className={`flex-1 py-3 rounded-xl font-bold text-sm text-white flex items-center justify-center gap-2 transition ${
-                                    isAllSelected && confirmText !== "DELETE"
-                                        ? "bg-red-200 cursor-not-allowed"
-                                        : "bg-red-600 hover:bg-red-700 shadow-lg shadow-red-100"
-                                }`}
-                            >
-                                {isDeleting ? (
-                                    <Loader2
-                                        className="animate-spin"
-                                        size={18}
-                                    />
-                                ) : (
-                                    "Confirm Delete"
-                                )}
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            )}
         </AuthenticatedLayout>
     );
 }

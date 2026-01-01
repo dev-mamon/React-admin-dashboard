@@ -13,7 +13,7 @@ class ProductSeeder extends Seeder
     public function run(): void
     {
         $totalItems = 5000;
-        $chunkSize = 1000; // প্রতি ব্যাচে ১০০০ করে ইনসার্ট হবে
+        $chunkSize = 1000;
 
         $output = new ConsoleOutput;
         $progressBar = new ProgressBar($output, $totalItems);

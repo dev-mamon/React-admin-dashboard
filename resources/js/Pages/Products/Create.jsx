@@ -2,6 +2,7 @@ import React from "react";
 import AuthenticatedLayout from "@/Layouts/AuthenticatedLayout";
 import { Head, Link, useForm } from "@inertiajs/react";
 import { Input } from "@/Components/ui/input";
+import FileUpload from "@/Components/ui/FileUpload";
 import {
     ChevronLeft,
     Settings,
@@ -68,32 +69,15 @@ export default function Create() {
                     <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
                         {/* Left Column: Basic Information */}
                         <div className="space-y-5">
-                            <div>
-                                <label className="text-[14px] font-bold text-[#212B36] mb-1.5 block">
-                                    Product Name
-                                </label>
-                                <Input
-                                    type="text"
-                                    placeholder="Enter product name"
-                                    value={data.name}
-                                    onChange={(e) =>
-                                        handleInputChange(
-                                            "name",
-                                            e.target.value
-                                        )
-                                    }
-                                    className={
-                                        errors.name
-                                            ? "border-red-500"
-                                            : "border-gray-200"
-                                    }
-                                />
-                                {errors.name && (
-                                    <p className="text-red-500 text-sm font-medium text-[12px] mt-1">
-                                        {errors.name}
-                                    </p>
-                                )}
-                            </div>
+                            <Input
+                                label="Product Name"
+                                placeholder="e.g. iPhone 15 Pro"
+                                value={data.name}
+                                error={errors.name}
+                                onChange={(e) =>
+                                    setData("name", e.target.value)
+                                }
+                            />
 
                             <div className="grid grid-cols-2 gap-4">
                                 <div>
@@ -152,73 +136,40 @@ export default function Create() {
                             </div>
 
                             <div>
-                                <label className="text-[14px] font-bold text-[#212B36] mb-1.5 block">
-                                    Description
-                                </label>
-                                <textarea
-                                    className={`w-full border rounded-md p-3 text-[14px] focus:border-[#FF9F43] focus:ring-0 outline-none min-h-[150px] transition ${
-                                        errors.description
-                                            ? "border-red-500"
-                                            : "border-gray-200"
-                                    }`}
-                                    placeholder="Enter product details..."
+                                <Input
+                                    isTextArea
+                                    label="Description"
+                                    placeholder="Write product details..."
                                     value={data.description}
+                                    error={errors.description}
                                     onChange={(e) =>
-                                        handleInputChange(
-                                            "description",
-                                            e.target.value
-                                        )
+                                        setData("description", e.target.value)
                                     }
-                                ></textarea>
-                                {errors.description && (
-                                    <p className="text-red-500 text-sm font-medium text-[12px] mt-1">
-                                        {errors.description}
-                                    </p>
-                                )}
+                                />
                             </div>
                         </div>
 
                         {/* Right Column: Media & Settings */}
                         <div className="space-y-6">
                             <div>
-                                <label className="text-[14px] font-bold text-[#212B36] mb-1.5 block">
-                                    Product Image
-                                </label>
-                                <div
-                                    className={`border-2 border-dashed rounded-lg p-10 flex flex-col items-center justify-center bg-gray-50 hover:bg-gray-100 transition-all cursor-pointer relative group ${
-                                        errors.image
-                                            ? "border-red-500"
-                                            : "border-gray-200"
-                                    }`}
-                                >
-                                    <input
-                                        type="file"
-                                        className="absolute inset-0 opacity-0 cursor-pointer"
-                                        onChange={(e) => {
-                                            setData("image", e.target.files[0]);
-                                            clearErrors("image");
-                                        }}
-                                    />
-                                    <div className="bg-orange-100 p-3 rounded-full mb-3 group-hover:scale-110 transition-transform">
-                                        <UploadCloud
-                                            size={30}
-                                            className="text-[#FF9F43]"
-                                        />
-                                    </div>
-                                    <p className="text-[14px] font-bold text-[#212B36]">
-                                        {data.image
-                                            ? data.image.name
-                                            : "Click to upload or drag and drop"}
-                                    </p>
-                                    <p className="text-[12px] text-gray-400 mt-1">
-                                        PNG, JPG, WebP up to 2MB
-                                    </p>
-                                </div>
-                                {errors.image && (
-                                    <p className="text-red-500 text-sm font-medium text-[12px] mt-1">
-                                        {errors.image}
-                                    </p>
-                                )}
+                                <FileUpload
+                                    label="Product Thumbnail"
+                                    field="image" // useForm এর কী (key)
+                                    data={data}
+                                    setData={setData}
+                                    errors={errors}
+                                    clearErrors={clearErrors}
+                                    multiple={false}
+                                />
+                                <FileUpload
+                                    label="Product Gallery"
+                                    field="images"
+                                    multiple={true}
+                                    data={data}
+                                    setData={setData}
+                                    errors={errors}
+                                    clearErrors={clearErrors}
+                                />
                             </div>
 
                             <div className="bg-gray-50 p-4 rounded-lg border border-gray-100 space-y-4">

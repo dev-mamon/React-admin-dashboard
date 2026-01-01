@@ -43,35 +43,6 @@ const Sidebar = ({ isCollapsed, isMobileOpen, setIsMobileOpen }) => {
                     overflow-y-auto overflow-x-hidden p-3 space-y-6 custom-sidebar-scrollbar
                 `}
             >
-                {/* Logo Area */}
-                <div className="h-16 flex items-center justify-between px-3 border-b border-gray-50 mb-4 shrink-0">
-                    <div className="flex items-center gap-3">
-                        <div className="w-8 h-8 bg-orange-500 rounded flex items-center justify-center shrink-0">
-                            <span className="text-white font-bold text-lg">
-                                D
-                            </span>
-                        </div>
-                        {(!isCollapsed || isMobileOpen) && (
-                            <div className="leading-tight">
-                                <span className="text-xl font-bold text-slate-800 block">
-                                    Dreams
-                                </span>
-                                <span className="text-orange-500 text-[10px] font-bold uppercase tracking-tighter -mt-1 block text-right">
-                                    pos
-                                </span>
-                            </div>
-                        )}
-                    </div>
-                    {isMobileOpen && (
-                        <button
-                            onClick={() => setIsMobileOpen(false)}
-                            className="lg:hidden p-1 text-gray-400"
-                        >
-                            <X size={20} />
-                        </button>
-                    )}
-                </div>
-
                 {/* Main Section */}
                 <section>
                     {(!isCollapsed || isMobileOpen) && (
